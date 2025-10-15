@@ -71,21 +71,38 @@ function displayData(capturedData) {
   });
   buttonGroup.appendChild(copyButton);
   
-  const clearButton = document.createElement('button');
-  clearButton.className = 'secondary';
-  clearButton.textContent = 'Clear Data';
-  clearButton.addEventListener('click', () => {
-    chrome.storage.local.remove('lastCapturedData');
-    statusIndicator.classList.add('no-data');
-    statusText.textContent = 'Monitoring for data...';
-    dataContainer.innerHTML = `
-      <div class="no-data-message">
-        <h3>No Data Captured Yet</h3>
-        <p>Visit a Blueflame AI chat page to start capturing data.</p>
-      </div>
-    `;
+  const downloadButton = document.createElement('button');
+  downloadButton.className = 'secondary';
+  downloadButton.textContent = 'Download JSON';
+  downloadButton.addEventListener('click', () => {
+    // Create a blob with the JSON data
+    const jsonString = JSON.stringify(capturedData.data, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    
+    // Create a download link
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    a.download = `blueflame-chat-data-${timestamp}.json`;
+    
+    // Trigger download
+    document.body.appendChild(a);
+    a.click();
+    
+    // Clean up
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    // Update button text temporarily
+    downloadButton.textContent = '✓ Downloaded!';
+    setTimeout(() => {
+      downloadButton.textContent = 'Download JSON';
+    }, 2000);
   });
-  buttonGroup.appendChild(clearButton);
+  buttonGroup.appendChild(downloadButton);
   
   dataSection.appendChild(buttonGroup);
   
